@@ -1,14 +1,21 @@
-from flask import Flask, Response
+from flask import Flask, Response, request
 import os
 
 app = Flask(__name__)
 
-# This '/' means the "root" or main page of your URL
 @app.route('/')
-def main_command():
-    return Response('Write-Host "Connection Successful!" -ForegroundColor Green', mimetype='text/plain')
+def hidden_command():
+    # Only show the PowerShell code if the 'run' parameter is present
+    secret_key = request.args.get('run')
+
+    if secret_key == '1':
+        # This is what your EliteBook will execute
+        ps_content = 'Write-Host "Jailbreak-1: System Authorized." -ForegroundColor Green'
+        return Response(ps_content, mimetype='text/plain')
+    else:
+        # This shows a completely blank page to everyone else
+        return Response('', mimetype='text/plain')
 
 if __name__ == "__main__":
-    # Render needs this specific port logic
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
