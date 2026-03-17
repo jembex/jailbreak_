@@ -4,16 +4,23 @@ import os
 app = Flask(__name__)
 
 @app.route('/')
-def hidden_command():
-    # Only show the PowerShell code if the 'run' parameter is present
+def admin_check_command():
+    # Only show if the secret 'run=1' is used
     secret_key = request.args.get('run')
 
     if secret_key == '1':
-        # This is what your EliteBook will execute
-        ps_content = 'Write-Host "Jailbreak-1: System Authorized." -ForegroundColor Green'
+        # This PowerShell script checks for Admin rights
+        ps_content = """
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "Success: Running as Administrator on Jember's EliteBook." -ForegroundColor Green
+    # Put your admin-only commands (like keytool setup) here
+} else {
+    Write-Host "Error: Not running as Administrator. Please restart PowerShell as Admin." -ForegroundColor Red
+}
+"""
         return Response(ps_content, mimetype='text/plain')
     else:
-        # This shows a completely blank page to everyone else
         return Response('', mimetype='text/plain')
 
 if __name__ == "__main__":
