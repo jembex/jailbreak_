@@ -1,14 +1,14 @@
 from flask import Flask, Response
+import os
 
 app = Flask(__name__)
 
+# This '/' means the "root" or main page of your URL
 @app.route('/')
-def home():
-    # This is the PowerShell code that will run on your laptop
-    powershell_code = 'Write-Host "Hello World from Jember!" -ForegroundColor Green'
-    
-    # Crucial: Must be 'text/plain' for | iex to work easily
-    return Response(powershell_code, mimetype='text/plain')
+def main_command():
+    return Response('Write-Host "Connection Successful!" -ForegroundColor Green', mimetype='text/plain')
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=10000)
+    # Render needs this specific port logic
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
