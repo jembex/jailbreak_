@@ -1,27 +1,23 @@
-from flask import Flask, Response, request
+from flask import Flask, Response
 import os
 
 app = Flask(__name__)
 
 @app.route('/')
-def admin_check_command():
-    # Only show if the secret 'run=1' is used
-    secret_key = request.args.get('run')
-
-    if secret_key == '1':
-        # This PowerShell script checks for Admin rights
-        ps_content = """
+def direct_command():
+    # The PowerShell script logic
+    ps_content = """
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "Success: Running as Administrator on Jember's EliteBook." -ForegroundColor Green
-    # Put your admin-only commands (like keytool setup) here
+    Write-Host "--- JAILBREAK-1: ADMIN ACTIVE ---" -ForegroundColor Green
+    Write-Host "Ready for Jember's EliteBook deployment." -ForegroundColor Cyan
 } else {
-    Write-Host "Error: Not running as Administrator. Please restart PowerShell as Admin." -ForegroundColor Red
+    Write-Host "--- ACCESS DENIED ---" -ForegroundColor Red
+    Write-Host "Please run PowerShell as Administrator to use this tool." -ForegroundColor Yellow
 }
 """
-        return Response(ps_content, mimetype='text/plain')
-    else:
-        return Response('', mimetype='text/plain')
+    # Serving as text/plain ensures it executes via iex but stays 'hidden' in browsers
+    return Response(ps_content, mimetype='text/plain')
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
