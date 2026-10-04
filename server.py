@@ -53,6 +53,10 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
 
     return Response(ps_payload, mimetype='text/plain')
 
+@app.route('/ping')
+def ping():
+    return Response("ok", status=200, mimetype='text/plain')
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
